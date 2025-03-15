@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Filesystem Access</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        h1 { color: #333; }
+        input, button { padding: 10px; margin: 5px; }
+        pre { text-align: left; background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>ChatGPT Filesystem Access</h1>
+    <p>Enter a file path to read:</p>
+    <input type="text" id="filePath" placeholder="Enter file path..." size="50">
+    <button onclick="readFile()">Read File</button>
+    
+    <h3>File Content:</h3>
+    <pre id="output"></pre>
+
+    <script>
+        async function listFiles() {
+            const dirPath = document.getElementById("dirPath").value;
+            if (!dirPath) {
+                alert("Please enter a directory path!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/list_files?path=${encodeURIComponent(dirPath)}`);
+                const data = await response.json();
+
+                const fileList = document.getElementById("fileList");
+                fileList.innerHTML = "";
+
+                if (data.error) {
+                    fileList.innerHTML = `<li style="color:red;">Error: ${data.error}</li>`;
+                } else {
+                    data.files.forEach(file => {
+                        const li = document.createElement("li");
+                        li.textContent = file;
+                        fileList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching file list:", error);
+                alert("Failed to load files. Check console for details.");
+            }
+        }
+
+        async function readFile() {
+            const filePath = document.getElementById("filePath").value;
+            if (!filePath) {
+                alert("Please enter a file path!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/read_file?file_path=${encodeURIComponent(filePath)}`);
+                const data = await response.json();
+
+                const output = document.getElementById("output");
+                if (data.error) {
+                    output.textContent = `Error: ${data.error}`;
+                } else {
+                    output.textContent = data.content;
+                }
+            } catch (error) {
+                console.error("Error reading file:", error);
+                alert("Failed to read file. Check console for details.");
+            }
+        }
+    </script>
+
+    <hr>
+    <h2>List Files in Directory</h2>
+    <p>Enter a directory path:</p>
+    <input type="text" id="dirPath" placeholder="Enter directory path..." size="50">
+    <button onclick="listFiles()">List Files</button>
+
+    <h3>Directory Contents:</h3>
+    <ul id="fileList"></ul>
+
+</body>
+</html>
